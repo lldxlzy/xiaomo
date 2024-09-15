@@ -1,0 +1,4 @@
+#user:mopi
+#non-admin
+if sys wro:
+	exit()
