@@ -1,50 +1,67 @@
-#! /user/bin python 3.8.0
-#! /git.lingmo/xiaomo cheak file
 import requests
 import zipfile
 import os
-import hashlib
 
 def download_file(url, destination):
-    # 下载文件
-    response = requests.get(url)
-    if response.status_code == 200:
+    """下载文件"""
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
         with open(destination, 'wb') as file:
             file.write(response.content)
-    else:
-        print("下载失败，状态码：", response.status_code)
+        print(f"成功下载文件：{destination}")
+    except requests.exceptions.RequestException as e:
+        print(f"下载失败：{e}")
 
 def unzip_file(zip_path, extract_to):
+    """解压文件"""
+    try:
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_to)
+        print(f"成功解压文件：{zip_path} 到 {extract_to}")
+    except zipfile.BadZipFile:
+        print(f"解压失败：{zip_path} 不是一个有效的 ZIP 文件")
+
+def compare_files(file1_path, file2_path):
+    """比较两个文件的内容"""
+    try:
+        with open(file1_path, 'r', encoding='utf-8') as file1, open(file2_path, 'r', encoding='utf-8') as file2:
+            file1_lines = file1.readlines()
+            file2_lines = file2.readlines()
+
+        max_lines = max(len(file1_lines), len(file2_lines))
+        for i in range(max_lines):
+            line1 = file1_lines[i].strip() if i < len(file1_lines) else "[未定义]"
+            line2 = file2_lines[i].strip() if i < len(file2_lines) else "[未定义]"
+
+            if line1 != line2:
+                print(f"第 {i + 1} 行不一致:\n文件1: {line1}\n文件2: {line2}")
+            else:
+                print(f"第 {i + 1} 行一致: {line1}")
+
+    except FileNotFoundError as e:
+        print(f"错误：未找到文件 - {e.filename}")
+    except Exception as e:
+        print(f"发生错误：{e}")
+
+if __name__ == "__main__":
+    url = 'https://github.com/lldxlzy/xiaomo/releases/download/textfileture/textfiletureused.zip'  # 实际 URL
+    destination = 'downloaded_file.zip'
+    extract_to = 'extracted_files'
+
+    os.makedirs(extract_to, exist_ok=True)
+
+    # 下载文件
+    download_file(url, destination)
+
     # 解压文件
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(extract_to)
+    unzip_file(destination, extract_to)
 
-def calculate_sha256(file_path):
-    # 计算文件的 SHA-256 哈希值
-    hash_sha256 = hashlib.sha256()
-    with open(file_path, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_sha256.update(chunk)
-    return hash_sha256.hexdigest()
+    # 比较的两个文件路径
+    file1_path = os.path.join(extract_to, "cheak(don't use!!!).txt")  # 确保路径正确
+    file2_path = os.path.join(extract_to, "extracted_files", "cheak(don't use!!!).txt")  # 确保路径正确
 
-# 示例用法
-url = 'http://example.com/yourfile.zip'  # 替换为实际文件 URL
-destination = 'yourfile.zip'
-extract_to = 'extracted_files'
-expected_sha256 = 'expected_sha256_hash_here'  # 替换为期望的 SHA-256 哈希值
+    # 比较文件
+    compare_files(file1_path, file2_path)
 
-# 步骤 1：下载文件
-download_file(url, destination)
-
-# 步骤 2：解压文件
-unzip_file(destination, extract_to)
-
-# 步骤 3：检查文件的一致性
-downloaded_sha256 = calculate_sha256(destination)
-if downloaded_sha256 == expected_sha256:
-    print("文件一致性检查通过！")
-else:
-    print("文件一致性检查失败！")
-
-# 可选：删除下载的 ZIP 文件
-os.remove(destination)
+    print("处理完成。")
