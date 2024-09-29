@@ -3,17 +3,12 @@ import zipfile
 import os
 import logging
 
-class CannotUseAdmin(Exception):
-    """自定义异常，用于处理 unwelcome 相关错误"""
-    pass
-
 def setup_logging():
     logging.basicConfig(
         filename='error.log',  # 日志文件名
         level=logging.ERROR,    # 只记录错误及以上级别的日志
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
-
 def main():
     setup_logging()
 
@@ -79,6 +74,3 @@ def main():
     compare_files(file1_path, file2_path)
 
     print("处理完成。")
-
-if __name__ == "__main__":
-    main()  # 调用 main 函数
